@@ -1,0 +1,21 @@
+type Car = record {
+  id : text;
+  model : text;
+  year : text;
+  isAvailable : bool;
+  updatedAt : opt nat64;
+  brand : text;
+};
+type _AzleResult = variant { Ok : Car; Err : text };
+type _AzleResult_1 = variant { Ok : opt Car; Err : text };
+type _AzleResult_2 = variant { Ok : vec Car; Err : text };
+service : () -> {
+  addCar : (Car) -> (_AzleResult);
+  bookCar : (text) -> (_AzleResult);
+  deleteCar : (text) -> (_AzleResult_1);
+  getCars : () -> (_AzleResult_2) query;
+  getcar : (text) -> (_AzleResult) query;
+  returnCar : (text) -> (_AzleResult);
+  searchCars : (text) -> (_AzleResult_2) query;
+  updateCar : (text, Car) -> (_AzleResult);
+}
