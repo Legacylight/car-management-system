@@ -132,7 +132,7 @@ export function getCars(): Result<Vec<Car>, string> {
 }
 
 $query
-export function getcar(id: string): Result<Car, string> {
+export function getCar(id: string): Result<Car, string> {
     return match(carStorage.get(id), {
         Some: (car) => Result.Ok<Car, string>(car),
         None: () => Result.Err<Car, string>(`Car with id=${id} not found`),
@@ -162,7 +162,7 @@ export function deleteCar(id: string): Result<Opt<Car>, string> {
 export function isValidUUID(id: string): boolean {
     return /^[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}$/i.test(id);
 }
-// A workaround to make the uuid package work with Azle
+
 globalThis.crypto = {
     // @ts-ignore
     getRandomValues: () => {
@@ -175,3 +175,66 @@ globalThis.crypto = {
         return array;
     },
 };
+
+$query
+export function isCarAvailable(id: string): Result<boolean, string> {
+    const car = carStorage.get(id);
+    if (car && car.isAvailable) {
+        return Result.Ok(true);
+    } else {
+        return Result.Ok(false);
+    }
+}
+
+$query
+export function getAvailableCars(): Result<Vec<Car>, string> {
+    const availableCars = carStorage.values().filter((car) => car.isAvailable);
+    return Result.Ok(availableCars);
+}
+
+$query
+export function getBookedCars(): Result<Vec<Car>, string> {
+    const bookedCars = carStorage.values().filter((car) => !car.isAvailable);
+    return Result.Ok(bookedCars);
+}
+
+$query
+export function getBrandCars(brand: string): Result<Vec<Car>, string> {
+    const brandLowerCase = brand.toLowerCase();
+    const brandFilteredCars = carStorage.values().filter((car) => car.brand.toLowerCase() === brandLowerCase);
+    return Result.Ok(brandFilteredCars);
+}
+
+$query
+export function getModelCars(model: string): Result<Vec<Car>, string> {
+    const modelLowerCase = model.toLowerCase();
+    const modelFilteredCars = carStorage.values().filter((car) => car.model.toLowerCase() === modelLowerCase);
+    return Result.Ok(modelFilteredCars);
+}
+
+$query
+export function getYearCars(year: string): Result<Vec<Car>, string> {
+    const yearFilteredCars = carStorage.values().filter((car) => car.year === year);
+    return Result.Ok(yearFilteredCars);
+}
+
+$query
+export function getUpdatedCars(timestamp: nat64): Result<Vec<Car>, string> {
+    const updatedCars = carStorage.values().filter((car) => {
+        if (car.updatedAt && car.updatedAt.value >= timestamp) {
+            return true;
+        }
+        return false;
+    });
+    return Result.Ok(updatedCars);
+}
+
+$query
+export function getMostRecentCarUpdate(id: string): Result<nat64, string> {
+    const car = carStorage.get(id);
+    if (car && car.updatedAt) {
+        return Result.Ok(car.updatedAt.value);
+    } else {
+        return Result.Err(`Car with ID ${id} not found or has no update timestamp.`);
+    }
+}
